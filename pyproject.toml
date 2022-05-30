@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "saketracker"
+version = "0.1.0"
+description = ""
+authors = ["JoMingyu <mingyu.planb@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "3.9"
+requests = "^2.27.1"
+discord = "^1.7.3"
+python-dotenv = "^0.20.0"
+beautifulsoup4 = "^4.11.1"
+arrow = "^1.2.2"
+
+[tool.poetry.dev-dependencies]
+black = "^22.3.0"
+isort = "^5.10.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
