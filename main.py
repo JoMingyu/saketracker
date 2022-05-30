@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from hashlib import md5
+from random import randint
 from typing import Set
 
 import arrow
@@ -107,6 +108,14 @@ class Sakedoo(Source):
                         )
                     )
 
+        result.add(
+            Sake(
+                provider=self.provider_name,
+                name=f"おいしいお酒{randint(1, 100)}",
+                price_yen="¥1,000",
+            )
+        )
+
         return result
 
 
@@ -136,7 +145,7 @@ async def my_background_task():
         now = datetime.now(tz=timezone(timedelta(hours=9)))
 
         if now.hour < 8 or now.hour > 18:
-            await asyncio.sleep(600)
+            await asyncio.sleep(6)
         else:
             await asyncio.sleep(5)
 
