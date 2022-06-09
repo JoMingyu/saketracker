@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from hashlib import md5
-from random import randint
 from typing import Set
 
 import arrow
@@ -62,6 +61,9 @@ class Sake09(Source):
             },
         )
 
+        if resp.status_code != 200:
+            raise Exception(f"{resp.status_code} occurred.")
+
         bs = BeautifulSoup(resp.text, "html.parser")
 
         divs = bs.select("div.list_area.clearfix")
@@ -97,6 +99,9 @@ class Sakedoo(Source):
             },
         )
 
+        if resp.status_code != 200:
+            raise Exception(f"{resp.status_code} occurred.")
+
         products = json.loads(re.findall(r"var meta = (.+);", resp.text)[0])["products"]
 
         for product in products:
@@ -118,31 +123,53 @@ client = discord.Client()
 
 
 async def my_background_task():
-    providers = [Sake09(), Sakedoo()]
-
     await client.wait_until_ready()
 
     channel = client.get_channel(id=882654869809418271)
+    debug_channel = client.get_channel(id=984273411176009779)
+
+    try:
+        providers = [Sake09(), Sakedoo()]
+    except Exception as e:
+        await debug_channel.send(f"{e}")
+        return
+
+    provider_to_sleep_seconds = {
+        "sake09": [5, 300],
+        "sakedoo": [5, 300],
+    }
 
     while not client.is_closed():
-        print("start!")
-
         for provider in providers:
-            diffs = provider.run()
+            try:
+                diffs = provider.run()
 
-            if diffs:
-                for sake in diffs:
-                    await channel.send(
-                        f"""상품 발견! ({arrow.now('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss')})
-[{provider.provider_name}] {sake.name} ({sake.price_yen}円)"""
-                    )
+                if diffs:
+                    for sake in diffs:
+                        await channel.send(
+                            f"""상품 발견! ({arrow.now('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss')})
+    [{provider.provider_name}] {sake.name} ({sake.price_yen}円)"""
+                        )
 
-        now = datetime.now(tz=timezone(timedelta(hours=9)))
+                provider_to_sleep_seconds[provider.provider_name] = [5, 300]
+            except Exception as e:
+                await debug_channel.send(
+                    f"""에러 발생! ({arrow.now('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss')})
+    [{provider.provider_name}] {e}"""
+                )
 
-        if now.hour < 8 or now.hour > 18:
-            await asyncio.sleep(600)
-        else:
-            await asyncio.sleep(10)
+                provider_to_sleep_seconds[provider.provider_name] = [300, 3600]
+
+            now = datetime.now(tz=timezone(timedelta(hours=9)))
+
+            if now.hour < 8 or now.hour > 18:
+                await asyncio.sleep(
+                    provider_to_sleep_seconds[provider.provider_name][1]
+                )
+            else:
+                await asyncio.sleep(
+                    provider_to_sleep_seconds[provider.provider_name][0]
+                )
 
 
 @client.event
@@ -153,8 +180,8 @@ async def on_ready():
     print("------")
 
 
-load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")
+# load_dotenv()
+TOKEN = "OTgwNzc1ODYyMjM4NTkzMDg0.GdR36V.NDVYQcPKljGfbW5_FSy_5h_lHTthb5lw84x0jk"
 
 client.loop.create_task(my_background_task())
 client.run(TOKEN)
