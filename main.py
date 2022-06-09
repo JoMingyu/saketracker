@@ -56,7 +56,10 @@ class Sake09(Source):
         result = set()
 
         resp = get(
-            "https://sake09.com/shop/products/list.php?category_id=64&disp_number=300"
+            "https://sake09.com/shop/products/list.php?category_id=64&disp_number=300",
+            headers={
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"
+            },
         )
 
         bs = BeautifulSoup(resp.text, "html.parser")
