@@ -130,6 +130,8 @@ async def my_background_task():
 
     try:
         providers = [Sake09(), Sakedoo()]
+
+        await debug_channel.send(f"{datetime.now(timezone.utc)}: Start.")
     except Exception as e:
         await debug_channel.send(f"{e}")
         return
@@ -180,8 +182,8 @@ async def on_ready():
     print("------")
 
 
-# load_dotenv()
-TOKEN = "OTgwNzc1ODYyMjM4NTkzMDg0.GdR36V.NDVYQcPKljGfbW5_FSy_5h_lHTthb5lw84x0jk"
+load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 client.loop.create_task(my_background_task())
 client.run(TOKEN)
