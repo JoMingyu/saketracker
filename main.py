@@ -28,7 +28,6 @@ class Sake:
 
 class Source(ABC):
     def __init__(self, provider_name: str):
-        self.count = 0
         self.provider_name = provider_name
         self.previous_result = self.get_sakes()
 
@@ -131,7 +130,9 @@ async def my_background_task():
     try:
         providers = [Sake09(), Sakedoo()]
 
-        await debug_channel.send(f"{datetime.now(timezone.utc)}: Start.")
+        await debug_channel.send(
+            f"{arrow.now('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss')}: Start."
+        )
     except Exception as e:
         await debug_channel.send(f"{e}")
         return
@@ -139,6 +140,10 @@ async def my_background_task():
     provider_to_sleep_seconds = {
         "sake09": [5, 300],
         "sakedoo": [5, 300],
+    }
+    provider_to_get_count = {
+        "sake09": 300,
+        "sakedoo": 300,
     }
 
     while not client.is_closed():
@@ -153,6 +158,13 @@ async def my_background_task():
     [{provider.provider_name}] {sake.name} ({sake.price_yen}円)"""
                         )
 
+                if provider_to_get_count[provider.provider_name] == 300:
+                    await debug_channel.send(
+                        f"{arrow.now('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss')}: {provider.provider_name} holding {len(provider.previous_result)}."
+                    )
+                    provider_to_get_count[provider.provider_name] = 0
+
+                provider_to_get_count[provider.provider_name] += 1
                 provider_to_sleep_seconds[provider.provider_name] = [5, 300]
             except Exception as e:
                 await debug_channel.send(
